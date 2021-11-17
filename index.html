@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro Todo</title>
+  </head>
+  <body>
+    <template id="todo-template">
+      <div>
+        <slot name="todo-name">NAME MISSING</slot>
+        <ul>
+          <li><slot name="todo-tag">TAG MISSING</slot></li>
+          <li><slot name="todo-description">DES MISSING</slot></li>
+        </ul>
+      </div>
+    </template>
+
+    <todo-details>
+      <p slot="todo-name"><edit-word>Todo...</edit-word></p>
+      <span slot="todo-tag">36</span>
+      <span slot="todo-description">Accountant</span>
+    </todo-details>
+
+    <script src="main.js"></script>
+  </body>
+</html>

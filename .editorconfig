@@ -1,0 +1,10 @@
+root = true
+
+# Set default charset
+[*.{js}]
+charset = utf-8
+
+# 2 space indentation
+[*.{html,js}]
+indent_style = space
+indent_size = 2
