@@ -2,26 +2,81 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pomodoro Todo</title>
+    <title>Todo Pomodoro</title>
+    <style>
+      ul {
+        list-style-type: none;
+      }
+
+      li::before {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        margin-right: 0.25rem;
+        content: "";
+      }
+
+      .open::before,
+      .closed::before {
+        background-size: 1rem 1rem;
+        position: relative;
+        top: 0.25rem;
+        opacity: 0.3;
+      }
+
+      .open::before {
+        background-image: url(img/down.png);
+      }
+
+      .closed::before {
+        background-image: url(img/right.png);
+      }
+
+      .closed .closed::before,
+      .closed .open::before {
+        display: none;
+      }
+    </style>
   </head>
   <body>
-    <template id="todo-template">
-      <div>
-        <slot name="todo-name">NAME MISSING</slot>
+    <h1>Todo</h1>
+    <ul is="expanding-list">
+      <li>
+        UK
         <ul>
-          <li><slot name="todo-tag">TAG MISSING</slot></li>
-          <li><slot name="todo-description">DES MISSING</slot></li>
+          <li>
+            Yorkshire
+            <ul>
+              <li>
+                Leeds
+                <ul>
+                  <li>Train station</li>
+                  <li>Town hall</li>
+                  <li>Headrow</li>
+                </ul>
+              </li>
+              <li>Bradford</li>
+              <li>Hull</li>
+            </ul>
+          </li>
         </ul>
-      </div>
-    </template>
-
-    <todo-details>
-      <p slot="todo-name"><edit-word>Todo...</edit-word></p>
-      <span slot="todo-tag">36</span>
-      <span slot="todo-description">Accountant</span>
-    </todo-details>
+      </li>
+      <li>
+        USA
+        <ul>
+          <li>
+            California
+            <ul>
+              <li>Los Angeles</li>
+              <li>San Francisco</li>
+              <li>Berkeley</li>
+            </ul>
+          </li>
+          <li>Nevada</li>
+          <li>Oregon</li>
+        </ul>
+      </li>
+    </ul>
 
     <script src="main.js"></script>
   </body>
