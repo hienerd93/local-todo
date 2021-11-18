@@ -2,9 +2,19 @@
   const weekDayArray = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   let ul = null;
 
+  function moveChoiceTo(elem_choice, direction) {
+    var span = elem_choice.parentNode,
+      td = span.parentNode;
+    if (direction === -1 && span.previousElementSibling) {
+      td.insertBefore(span, span.previousElementSibling);
+    } else if (direction === 1 && span.nextElementSibling) {
+      td.insertBefore(span, span.nextElementSibling.nextElementSibling);
+    }
+  }
+
   function getTextListFromUl(ul) {
     const lis = ul.getElementsByTagName("li");
-    const textList = [...lis].map((item) => item.childNodes[0].data);
+    const textList = [...lis].map((item) => item.children[0].innerText);
     return textList;
   }
 
@@ -43,7 +53,7 @@
           li, div > div {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-end;
           }
 
           .icon {
@@ -52,6 +62,16 @@
             cursor: pointer;
             float: right;
             font-size: 1.8rem;
+            justify-self: end;
+          }
+
+          .add-new-list-item-input {
+            width: 240px;
+          }
+
+          .todo-text {
+            margin-left: 0;
+            margin-right: auto; 
           }
         </style>
         <h3>${title}</h3>
@@ -60,7 +80,9 @@
             .map(
               (item) => `
             <li>
-              ${item}
+              <span class="todo-text">${item}</span>
+              <button class="up icon">&bigtriangleup;</button>
+              <button class="down icon">&bigtriangledown;</button>
               <button class="editable-list-remove-item icon">&ominus;</button>
             </li>
           `
@@ -79,6 +101,10 @@
       this.handleRemoveItemListeners =
         this.handleRemoveItemListeners.bind(this);
       this.removeListItem = this.removeListItem.bind(this);
+      this.upOrderItem = this.upOrderItem.bind(this);
+      this.downOrderItem = this.downOrderItem.bind(this);
+      this.upOrderItemListeners = this.upOrderItemListeners.bind(this);
+      this.downOrderItemListeners = this.downOrderItemListeners.bind(this);
 
       // appending the container to the shadow DOM
       shadow.appendChild(editableListContainer);
@@ -92,20 +118,42 @@
 
       if (textInput.value) {
         const li = document.createElement("li");
+        const span = document.createElement("span");
         const button = document.createElement("button");
+        const buttonUp = document.createElement("button");
+        const buttonDown = document.createElement("button");
         const childrenLength = this.itemList.children.length;
 
-        li.textContent = textInput.value;
+        span.textContent = textInput.value;
+        span.classList.add("todo-text");
         button.classList.add("editable-list-remove-item", "icon");
         button.innerHTML = "&ominus;";
+        buttonUp.classList.add("up", "icon");
+        buttonUp.innerHTML = "&bigtriangleup;";
+        buttonDown.classList.add("down", "icon");
+        buttonDown.innerHTML = "&bigtriangledown;";
 
         this.itemList.appendChild(li);
+
+        this.itemList.children[childrenLength].appendChild(span);
+        this.itemList.children[childrenLength].appendChild(buttonUp);
+        this.itemList.children[childrenLength].appendChild(buttonDown);
         this.itemList.children[childrenLength].appendChild(button);
 
         this.handleRemoveItemListeners([button]);
+        this.upOrderItemListeners([buttonUp]);
+        this.downOrderItemListeners([buttonDown]);
 
         textInput.value = "";
       }
+    }
+
+    upOrderItem(e) {
+      moveChoiceTo(e.target, -1);
+    }
+
+    downOrderItem(e) {
+      moveChoiceTo(e.target, 1);
     }
 
     // fires after the element has been attached to the DOM
@@ -113,6 +161,8 @@
       const removeElementButtons = [
         ...this.shadowRoot.querySelectorAll(".editable-list-remove-item"),
       ];
+      const upElementButtons = [...this.shadowRoot.querySelectorAll(".up")];
+      const downElementButtons = [...this.shadowRoot.querySelectorAll(".down")];
       const addElementButton = this.shadowRoot.querySelector(
         ".editable-list-add-item"
       );
@@ -121,6 +171,8 @@
       ul = this.itemList;
 
       this.handleRemoveItemListeners(removeElementButtons);
+      this.upOrderItemListeners(upElementButtons);
+      this.downOrderItemListeners(downElementButtons);
       addElementButton.addEventListener("click", this.addListItem, false);
     }
 
@@ -148,6 +200,18 @@
     handleRemoveItemListeners(arrayOfElements) {
       arrayOfElements.forEach((element) => {
         element.addEventListener("click", this.removeListItem, false);
+      });
+    }
+
+    upOrderItemListeners(arrayOfElements) {
+      arrayOfElements.forEach((element) => {
+        element.addEventListener("click", this.upOrderItem, false);
+      });
+    }
+
+    downOrderItemListeners(arrayOfElements) {
+      arrayOfElements.forEach((element) => {
+        element.addEventListener("click", this.downOrderItem, false);
       });
     }
 
