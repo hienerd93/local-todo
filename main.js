@@ -1,4 +1,12 @@
 (function () {
+  let todoStore = [...JSON.parse(window.localStorage.getItem("todo-store"))];
+
+  function getTextListFromUl(ul) {
+    const lis = ul.getElementsByTagName("li");
+    const textList = [...lis].map((item) => item.children[0].innerHTML);
+    return textList;
+  }
+
   customElements.define(
     "edit-word",
     class extends HTMLElement {
@@ -70,9 +78,9 @@
       const editableListContainer = document.createElement("div");
 
       // get attribute values from getters
-      const title = this.title;
+      const title = `${this.title} ${new Date().toISOString().split("T")[0]}`;
       const addItemText = this.addItemText;
-      const listItems = this.items;
+      const listItems = [...todoStore];
 
       // adding a class to our container for the sake of clarity
       editableListContainer.classList.add("editable-list");
@@ -145,6 +153,7 @@
         this.handleRemoveItemListeners([button]);
 
         textInput.value = "";
+        todoStore = getTextListFromUl(this.itemList);
       }
     }
 
@@ -192,9 +201,17 @@
 
     removeListItem(e) {
       e.target.parentNode.remove();
+      todoStore = getTextListFromUl(this.itemList);
     }
   }
 
+  window.addEventListener(
+    "beforeunload",
+    function (e) {
+      window.localStorage.setItem("todo-store", JSON.stringify(todoStore));
+    },
+    false
+  );
   // let the browser know about the custom element
   customElements.define("editable-list", EditableList);
 })();
