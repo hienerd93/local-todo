@@ -1,69 +1,19 @@
 (function () {
-  let todoStore = [...JSON.parse(window.localStorage.getItem("todo-store"))];
+  const weekDayArray = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  let ul = null;
 
   function getTextListFromUl(ul) {
     const lis = ul.getElementsByTagName("li");
-    const textList = [...lis].map((item) => item.children[0].innerHTML);
+    const textList = [...lis].map((item) => item.childNodes[0].data);
     return textList;
   }
 
-  customElements.define(
-    "edit-word",
-    class extends HTMLElement {
-      constructor() {
-        super();
-
-        const shadowRoot = this.attachShadow({ mode: "open" });
-        const form = document.createElement("form");
-        const input = document.createElement("input");
-        const span = document.createElement("span");
-        const button = document.createElement("button");
-
-        const style = document.createElement("style");
-        style.textContent = "span { background-color: #eef; padding: 0 2px }";
-
-        shadowRoot.appendChild(style);
-        shadowRoot.appendChild(form);
-        shadowRoot.appendChild(span);
-        shadowRoot.appendChild(button);
-
-        span.textContent = this.textContent;
-        button.textContent = "#";
-        input.value = this.textContent;
-
-        form.appendChild(input);
-        form.style.display = "none";
-        span.style.display = "inline-block";
-        input.style.width = "241px";
-        span.style.width = "245px";
-        button.style.width = "24px";
-
-        this.setAttribute("tabindex", "0");
-        input.setAttribute("required", "required");
-        this.style.display = "inline-block";
-
-        button.addEventListener("click", () => {
-          span.style.display = "none";
-          form.style.display = "inline-block";
-          input.focus();
-          input.setSelectionRange(0, input.value.length);
-        });
-
-        form.addEventListener("submit", (e) => {
-          updateDisplay();
-          e.preventDefault();
-        });
-
-        input.addEventListener("blur", updateDisplay);
-
-        function updateDisplay() {
-          span.style.display = "inline-block";
-          form.style.display = "none";
-          span.textContent = input.value;
-        }
-      }
-    }
-  );
+  function formatDateNow() {
+    const now = new Date();
+    return `${weekDayArray[now.getDay()]} ${now.getFullYear()}-${
+      now.getMonth() + 1
+    }-${now.getDate()}`;
+  }
 
   class EditableList extends HTMLElement {
     constructor() {
@@ -78,9 +28,11 @@
       const editableListContainer = document.createElement("div");
 
       // get attribute values from getters
-      const title = `${this.title} ${new Date().toISOString().split("T")[0]}`;
+      const title = `${this.title} ${formatDateNow()}`;
       const addItemText = this.addItemText;
-      const listItems = [...todoStore];
+      const listItems = [
+        ...JSON.parse(window.localStorage.getItem("todo-store")),
+      ];
 
       // adding a class to our container for the sake of clarity
       editableListContainer.classList.add("editable-list");
@@ -108,7 +60,7 @@
             .map(
               (item) => `
             <li>
-              <edit-word>${item}</edit-word>
+              ${item}
               <button class="editable-list-remove-item icon">&ominus;</button>
             </li>
           `
@@ -143,7 +95,7 @@
         const button = document.createElement("button");
         const childrenLength = this.itemList.children.length;
 
-        li.innerHTML = `<edit-word>${textInput.value}</edit-word>`;
+        li.textContent = textInput.value;
         button.classList.add("editable-list-remove-item", "icon");
         button.innerHTML = "&ominus;";
 
@@ -153,7 +105,6 @@
         this.handleRemoveItemListeners([button]);
 
         textInput.value = "";
-        todoStore = getTextListFromUl(this.itemList);
       }
     }
 
@@ -167,6 +118,7 @@
       );
 
       this.itemList = this.shadowRoot.querySelector(".item-list");
+      ul = this.itemList;
 
       this.handleRemoveItemListeners(removeElementButtons);
       addElementButton.addEventListener("click", this.addListItem, false);
@@ -201,13 +153,13 @@
 
     removeListItem(e) {
       e.target.parentNode.remove();
-      todoStore = getTextListFromUl(this.itemList);
     }
   }
 
   window.addEventListener(
     "beforeunload",
     function (e) {
+      const todoStore = getTextListFromUl(ul);
       window.localStorage.setItem("todo-store", JSON.stringify(todoStore));
     },
     false
