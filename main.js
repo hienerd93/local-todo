@@ -1,63 +1,200 @@
-// Create a class for the element
-class ExpandingList extends HTMLUListElement {
-  constructor() {
-    // Always call super first in constructor
-    // Return value from super() is a reference to this element
-    self = super();
+(function () {
+  customElements.define(
+    "edit-word",
+    class extends HTMLElement {
+      constructor() {
+        super();
 
-    // Get ul and li elements that are a child of this custom ul element
-    // li elements can be containers if they have uls within them
-    const uls = Array.from(self.querySelectorAll("ul"));
-    const lis = Array.from(self.querySelectorAll("li"));
+        const shadowRoot = this.attachShadow({ mode: "open" });
+        const form = document.createElement("form");
+        const input = document.createElement("input");
+        const span = document.createElement("span");
+        const button = document.createElement("button");
 
-    // Hide all child uls
-    // These lists will be shown when the user clicks a higher level container
-    uls.forEach((ul) => {
-      ul.style.display = "none";
-    });
+        const style = document.createElement("style");
+        style.textContent = "span { background-color: #eef; padding: 0 2px }";
 
-    // Look through each li element in the ul
-    lis.forEach((li) => {
-      // If this li has a ul as a child, decorate it and add a click handler
-      if (li.querySelectorAll("ul").length > 0) {
-        // Add an attribute which can be used  by the style
-        // to show an open or closed icon
-        li.setAttribute("class", "closed");
+        shadowRoot.appendChild(style);
+        shadowRoot.appendChild(form);
+        shadowRoot.appendChild(span);
+        shadowRoot.appendChild(button);
 
-        // Wrap the li element's text in a new span element
-        // so we can assign style and event handlers to the span
-        const childText = li.childNodes[0];
-        const newSpan = document.createElement("span");
+        span.textContent = this.textContent;
+        button.textContent = "#";
+        input.value = this.textContent;
 
-        // Copy text from li to span, set cursor style
-        newSpan.textContent = childText.textContent;
-        newSpan.style.cursor = "pointer";
+        form.appendChild(input);
+        form.style.display = "none";
+        span.style.display = "inline-block";
+        input.style.width = "241px";
+        span.style.width = "245px";
+        button.style.width = "24px";
 
-        // Add click handler to this span
-        newSpan.onclick = self.showul;
+        this.setAttribute("tabindex", "0");
+        input.setAttribute("required", "required");
+        this.style.display = "inline-block";
 
-        // Add the span and remove the bare text node from the li
-        childText.parentNode.insertBefore(newSpan, childText);
-        childText.parentNode.removeChild(childText);
+        button.addEventListener("click", () => {
+          span.style.display = "none";
+          form.style.display = "inline-block";
+          input.focus();
+          input.setSelectionRange(0, input.value.length);
+        });
+
+        form.addEventListener("submit", (e) => {
+          updateDisplay();
+          e.preventDefault();
+        });
+
+        input.addEventListener("blur", updateDisplay);
+
+        function updateDisplay() {
+          span.style.display = "inline-block";
+          form.style.display = "none";
+          span.textContent = input.value;
+        }
       }
-    });
+    }
+  );
+
+  class EditableList extends HTMLElement {
+    constructor() {
+      // establish prototype chain
+      super();
+
+      // attaches shadow tree and returns shadow root reference
+      // https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow
+      const shadow = this.attachShadow({ mode: "open" });
+
+      // creating a container for the editable-list component
+      const editableListContainer = document.createElement("div");
+
+      // get attribute values from getters
+      const title = this.title;
+      const addItemText = this.addItemText;
+      const listItems = this.items;
+
+      // adding a class to our container for the sake of clarity
+      editableListContainer.classList.add("editable-list");
+
+      // creating the inner HTML of the editable list element
+      editableListContainer.innerHTML = `
+        <style>
+          li, div > div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+
+          .icon {
+            background-color: #fff;
+            border: none;
+            cursor: pointer;
+            float: right;
+            font-size: 1.8rem;
+          }
+        </style>
+        <h3>${title}</h3>
+        <ul class="item-list">
+          ${listItems
+            .map(
+              (item) => `
+            <li>
+              <edit-word>${item}</edit-word>
+              <button class="editable-list-remove-item icon">&ominus;</button>
+            </li>
+          `
+            )
+            .join("")}
+        </ul>
+        <div>
+          <label>${addItemText}</label>
+          <input class="add-new-list-item-input" type="text"></input>
+          <button class="editable-list-add-item icon">&oplus;</button>
+        </div>
+      `;
+
+      // binding methods
+      this.addListItem = this.addListItem.bind(this);
+      this.handleRemoveItemListeners =
+        this.handleRemoveItemListeners.bind(this);
+      this.removeListItem = this.removeListItem.bind(this);
+
+      // appending the container to the shadow DOM
+      shadow.appendChild(editableListContainer);
+    }
+
+    // add items to the list
+    addListItem(e) {
+      const textInput = this.shadowRoot.querySelector(
+        ".add-new-list-item-input"
+      );
+
+      if (textInput.value) {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+        const childrenLength = this.itemList.children.length;
+
+        li.innerHTML = `<edit-word>${textInput.value}</edit-word>`;
+        button.classList.add("editable-list-remove-item", "icon");
+        button.innerHTML = "&ominus;";
+
+        this.itemList.appendChild(li);
+        this.itemList.children[childrenLength].appendChild(button);
+
+        this.handleRemoveItemListeners([button]);
+
+        textInput.value = "";
+      }
+    }
+
+    // fires after the element has been attached to the DOM
+    connectedCallback() {
+      const removeElementButtons = [
+        ...this.shadowRoot.querySelectorAll(".editable-list-remove-item"),
+      ];
+      const addElementButton = this.shadowRoot.querySelector(
+        ".editable-list-add-item"
+      );
+
+      this.itemList = this.shadowRoot.querySelector(".item-list");
+
+      this.handleRemoveItemListeners(removeElementButtons);
+      addElementButton.addEventListener("click", this.addListItem, false);
+    }
+
+    // gathering data from element attributes
+    get title() {
+      return this.getAttribute("title") || "";
+    }
+
+    get items() {
+      const items = [];
+
+      [...this.attributes].forEach((attr) => {
+        if (attr.name.includes("list-item")) {
+          items.push(attr.value);
+        }
+      });
+
+      return items;
+    }
+
+    get addItemText() {
+      return this.getAttribute("add-item-text") || "";
+    }
+
+    handleRemoveItemListeners(arrayOfElements) {
+      arrayOfElements.forEach((element) => {
+        element.addEventListener("click", this.removeListItem, false);
+      });
+    }
+
+    removeListItem(e) {
+      e.target.parentNode.remove();
+    }
   }
 
-  // li click handler
-  showul = function (e) {
-    // next sibling to the span should be the ul
-    const nextul = e.target.nextElementSibling;
-
-    // Toggle visible state and update class attribute on ul
-    if (nextul.style.display == "block") {
-      nextul.style.display = "none";
-      nextul.parentNode.setAttribute("class", "closed");
-    } else {
-      nextul.style.display = "block";
-      nextul.parentNode.setAttribute("class", "open");
-    }
-  };
-}
-
-// Define the new element
-customElements.define("expanding-list", ExpandingList, { extends: "ul" });
+  // let the browser know about the custom element
+  customElements.define("editable-list", EditableList);
+})();
