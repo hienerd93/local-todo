@@ -40,9 +40,7 @@
       // get attribute values from getters
       const title = `${this.title} ${formatDateNow()}`;
       const addItemText = this.addItemText;
-      const listItems = [
-        ...JSON.parse(window.localStorage.getItem("todo-store")),
-      ];
+      const listItems = JSON.parse(localStorage.getItem("todo-store") || "[]");
 
       // adding a class to our container for the sake of clarity
       editableListContainer.classList.add("editable-list");
