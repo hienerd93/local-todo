@@ -78,7 +78,7 @@
             .map(
               (item) => `
             <li>
-              <span class="todo-text">${item}</span>
+              <span class="todo-text" contentEditable>${item}</span>
               <button class="up icon">&bigtriangleup;</button>
               <button class="down icon">&bigtriangledown;</button>
               <button class="editable-list-remove-item icon">&ominus;</button>
@@ -123,6 +123,7 @@
         const childrenLength = this.itemList.children.length;
 
         span.textContent = textInput.value;
+        span.setAttribute("contentEditable", true);
         span.classList.add("todo-text");
         button.classList.add("editable-list-remove-item", "icon");
         button.innerHTML = "&ominus;";
