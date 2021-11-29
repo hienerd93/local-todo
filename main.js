@@ -48,7 +48,16 @@
       // creating the inner HTML of the editable list element
       editableListContainer.innerHTML = `
         <style>
-          li, div > div {
+          .editable-list-container {
+            width: 60%;
+            margin: 0 auto;
+          }
+
+          h3 {
+            text-align: center;
+          }
+
+          li, div > div > div {
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -64,7 +73,7 @@
           }
 
           .add-new-list-item-input {
-            width: 240px;
+            width: calc(100% - 360px);
           }
 
           .todo-text {
@@ -72,25 +81,27 @@
             margin-right: auto; 
           }
         </style>
-        <h3>${title}</h3>
-        <ul class="item-list">
-          ${listItems
-            .map(
-              (item) => `
-            <li>
-              <span class="todo-text" contentEditable>${item}</span>
-              <button class="up icon">&bigtriangleup;</button>
-              <button class="down icon">&bigtriangledown;</button>
-              <button class="editable-list-remove-item icon">&ominus;</button>
-            </li>
-          `
-            )
-            .join("")}
-        </ul>
-        <div>
-          <label>${addItemText}</label>
-          <input class="add-new-list-item-input" type="text"></input>
-          <button class="editable-list-add-item icon">&oplus;</button>
+        <div class="editable-list-container">
+          <h3>${title}</h3>
+          <ul class="item-list">
+            ${listItems
+              .map(
+                (item) => `
+              <li>
+                <span class="todo-text" contentEditable>${item}</span>
+                <button class="up icon">&bigtriangleup;</button>
+                <button class="down icon">&bigtriangledown;</button>
+                <button class="editable-list-remove-item icon">&ominus;</button>
+              </li>
+            `
+              )
+              .join("")}
+          </ul>
+          <div>
+            <label>${addItemText}</label>
+            <input class="add-new-list-item-input" type="text"></input>
+            <button class="editable-list-add-item icon">&oplus;</button>
+          </div>
         </div>
       `;
 
